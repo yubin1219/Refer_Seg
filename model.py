@@ -64,22 +64,17 @@ class Model2(nn.Module):
             self.backbone.append(layer)
         self.classifier = SimpleDecoding(8*embed_dim)
 
-        #self.text_encoder = nn.ModuleList()
         config = BertConfig.from_json_file('/database2/ref_seg/pretrained/config.json')
         self.text_encoder1 = BertModel(config)
-        #self.text_encoder.append(encoder)
 
         config1 = BertConfig.from_json_file('/database2/ref_seg/pretrained/config_cross1.json')
         self.text_encoder2 = BertEncoder_(config1, config1.encoder_width)#BertModel_(config)
-        #self.text_encoder.append(encoder)
 
         config2 = BertConfig.from_json_file('/database2/ref_seg/pretrained/config_cross2.json')
         self.text_encoder3 = BertEncoder_(config2, config2.encoder_width)#self.text_encoder3 = BertModel_(config2)
-        #self.text_encoder.append(encoder)
 
         config3 = BertConfig.from_json_file('/database2/ref_seg/pretrained/config_cross3.json')
         self.text_encoder4 = BertEncoder_(config3, config3.encoder_width)#self.text_encoder4 = BertModel_(config3)
-        #self.text_encoder.append(encoder)
 
         self._init_weights()
         
@@ -101,8 +96,6 @@ class Model2(nn.Module):
 
         model_dict = self.state_dict()
         pretrained_dict_new = {}
-        #swin_pre = torch.load('/database2/ref_seg/pretrained/swin_base_patch4_window12_384_22k.pth',map_location=device)['model']
-        #bert_pre = torch.load('/database2/ref_seg/pretrained/pytorch_model8.bin',map_location=device)
         swin_pre = torch.load('/database2/ref_seg/pretrained/upernet_swin_small_patch4_window7_512x512.pth',map_location=device)['state_dict']
         print("swin~~~")
         for k, v in swin_pre.items():
@@ -127,29 +120,6 @@ class Model2(nn.Module):
             
             if ('attn_mask' not in k) and ('head' not in k) and ('backbone.norm' not in k):
                 pretrained_dict_new[k] = v 
-        """print("BERT~~")
-        for k, v in bert_pre.items(): 
-            if ('embeddings' in k) or ('layer.0' in k) or ('layer.1' in k):
-                k = k.replace('bert','text_encoder1')
-                pretrained_dict_new[k] = v 
-            elif ('layer.2' in k):
-                k = k.replace('bert.encoder.layer.2','text_encoder2.layer.0')
-                pretrained_dict_new[k] = v 
-            elif ('layer.3' in k):
-                k = k.replace('bert.encoder.layer.3','text_encoder2.layer.1')
-                pretrained_dict_new[k] = v 
-            elif ('layer.4' in k):
-                k = k.replace('bert.encoder.layer.4','text_encoder3.layer.0')
-                pretrained_dict_new[k] = v 
-            elif ('layer.5' in k):
-                k = k.replace('bert.encoder.layer.5','text_encoder3.layer.1')
-                pretrained_dict_new[k] = v 
-            elif ('layer.6' in k):
-                k = k.replace('bert.encoder.layer.6','text_encoder4.layer.0')
-                pretrained_dict_new[k] = v 
-            elif ('layer.7' in k):
-                k = k.replace('bert.encoder.layer.7','text_encoder4.layer.1')
-                pretrained_dict_new[k] = v """
 
         model_dict.update(pretrained_dict_new)
         self.load_state_dict(model_dict)
@@ -163,26 +133,19 @@ class Model2(nn.Module):
         image_atts = torch.ones(x.size()[:-1],dtype=torch.long).to(x.device)
         last_hidden_states = self.text_encoder2(last_hidden_states, attention_mask=att_mask_, head_mask=head_mask,
                                                 encoder_hidden_states=x, encoder_attention_mask=image_atts)[0]
-        #last_hidden_states, att_mask_, head_mask = self.text_encoder2(attention_mask=att_mask_, encoder_hidden_states=x, inputs_embeds=last_hidden_states,
-        #                                    encoder_attention_mask=image_atts, head_mask=head_mask)
-        ##last_hidden_states = self.text_encoder2(last_hidden_states, attention_mask=att_mask_,  head_mask=head_mask)[0]
-        #last_hidden_states, att_mask_, head_mask = self.text_encoder2(inputs_embeds=last_hidden_states, attention_mask=att_mask_,  head_mask=head_mask)
+        
         l_feats = last_hidden_states.permute(0, 2, 1)
         x2, H, W, x, Wh, Ww = self.backbone[1](x, Wh, Ww, l_feats, l_mask_)
         image_atts = torch.ones(x.size()[:-1],dtype=torch.long).to(x.device)
         last_hidden_states = self.text_encoder3(last_hidden_states, attention_mask=att_mask_, head_mask=head_mask,
                                                 encoder_hidden_states=x, encoder_attention_mask=image_atts)[0]
-        #last_hidden_states, att_mask_, head_mask = self.text_encoder3(attention_mask=att_mask_, encoder_hidden_states=x, inputs_embeds=last_hidden_states,
-        #                                    encoder_attention_mask=image_atts,head_mask=head_mask)
-        ##last_hidden_states = self.text_encoder3(last_hidden_states, attention_mask=att_mask_,  head_mask=head_mask)[0]
+        
         l_feats = last_hidden_states.permute(0, 2, 1)
         x3, H, W, x, Wh, Ww = self.backbone[2](x, Wh, Ww, l_feats, l_mask_)
         image_atts = torch.ones(x.size()[:-1],dtype=torch.long).to(x.device)
         last_hidden_states = self.text_encoder4(last_hidden_states, attention_mask=att_mask_, head_mask=head_mask,
                                                 encoder_hidden_states=x, encoder_attention_mask=image_atts)[0]
-        #last_hidden_states, att_mask_, head_mask = self.text_encoder4(attention_mask=att_mask_, encoder_hidden_states=x,inputs_embeds=last_hidden_states,
-        #                                    encoder_attention_mask=image_atts, head_mask=head_mask)
-        ##last_hidden_states = self.text_encoder4(last_hidden_states, attention_mask=att_mask_,  head_mask=head_mask)[0]
+        
         l_feats = last_hidden_states.permute(0, 2, 1)
         x4, H, W, x, Wh, Ww = self.backbone[3](x, Wh, Ww, l_feats, l_mask_)
 
