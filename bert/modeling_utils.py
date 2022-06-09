@@ -204,15 +204,15 @@ class ModuleUtilsMixin:
             # Provided a padding mask of dimensions [batch_size, seq_length]
             # - if the model is a decoder, apply a causal mask in addition to the padding mask
             # - if the model is an encoder, make the mask broadcastable to [batch_size, num_heads, seq_length, seq_length]
-            #if self.config.is_decoder:
-            #    batch_size, seq_length = input_shape
-            #    seq_ids = torch.arange(seq_length, device=device)
-            #    causal_mask = seq_ids[None, None, :].repeat(batch_size, seq_length, 1) <= seq_ids[None, :, None]
+            if self.config.is_decoder:
+                batch_size, seq_length = input_shape
+                seq_ids = torch.arange(seq_length, device=device)
+                causal_mask = seq_ids[None, None, :].repeat(batch_size, seq_length, 1) <= seq_ids[None, :, None]
                 # causal and attention masks must have same type with pytorch version < 1.3
-            #    causal_mask = causal_mask.to(attention_mask.dtype)
-            #    extended_attention_mask = causal_mask[:, None, :, :] * attention_mask[:, None, None, :]
-            #else:
-            extended_attention_mask = attention_mask[:, None, None, :]
+                causal_mask = causal_mask.to(attention_mask.dtype)
+                extended_attention_mask = causal_mask[:, None, :, :] * attention_mask[:, None, None, :]
+            else:
+                extended_attention_mask = attention_mask[:, None, None, :]
         else:
             raise ValueError(
                 "Wrong shape for input_ids (shape {}) or attention_mask (shape {})".format(
