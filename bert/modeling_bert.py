@@ -444,6 +444,7 @@ class BertEncoder_(nn.Module):
         super(BertEncoder_, self).__init__()
         self.config = config
         self.layer = nn.ModuleList([BertLayer(config, encoder_width) for _ in range(config.num_hidden_layers)])
+        self._init_weights()
     
     def _init_weights(self):
         for name , module in self.named_modules():
@@ -454,16 +455,6 @@ class BertEncoder_(nn.Module):
                 module.weight.data.fill_(1.0)
             if isinstance(module, nn.Linear) and module.bias is not None:
                 module.bias.data.zero_()
-        
-        bert_pre = torch.load('/database2/ref_seg/pretrained/pytorch_model2.bin',map_location='cuda')
-        model_dict = self.state_dict()
-        pretrained_dict_new = {}
-        for k, v in bert_pre.items():
-            k = k.replace('bert.encoder.','')
-            if 'cls' not in k and 'pooler' not in k and 'embeddings' not in k:
-                pretrained_dict_new[k] = v
-        model_dict.update(pretrained_dict_new)
-        self.load_state_dict(model_dict)
     
     def forward(
         self,
