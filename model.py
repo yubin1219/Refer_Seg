@@ -68,13 +68,13 @@ class Model2(nn.Module):
         self.text_encoder1 = BertModel(config)
 
         config1 = BertConfig.from_json_file('/database2/ref_seg/pretrained/config_cross1.json')
-        self.text_encoder2 = BertEncoder_(config1, config1.encoder_width)#BertModel_(config)
+        self.text_encoder2 = BertEncoder_(config1, config1.encoder_width)
 
         config2 = BertConfig.from_json_file('/database2/ref_seg/pretrained/config_cross2.json')
-        self.text_encoder3 = BertEncoder_(config2, config2.encoder_width)#self.text_encoder3 = BertModel_(config2)
+        self.text_encoder3 = BertEncoder_(config2, config2.encoder_width)
 
         config3 = BertConfig.from_json_file('/database2/ref_seg/pretrained/config_cross3.json')
-        self.text_encoder4 = BertEncoder_(config3, config3.encoder_width)#self.text_encoder4 = BertModel_(config3)
+        self.text_encoder4 = BertEncoder_(config3, config3.encoder_width)
 
         self._init_weights()
         
